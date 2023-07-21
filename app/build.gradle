@@ -1,0 +1,130 @@
+apply plugin: 'com.android.application'
+//[enabled by builder] apply plugin: 'com.google.gms.google-services'
+apply plugin: 'kotlin-android'
+
+ext {
+    fbAppId = ""
+    fbClientToken = ""
+    onesignalAppId = ""
+    adMobAppId = ""
+    googleServiceInvalid = "false"
+    auth0Domain = ""
+    auth0Scheme = ""
+}
+
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+        //applicationId "io.gonative.android.ejbwaz"
+        applicationId "io.gonative.android"
+        versionCode 10
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+
+        manifestPlaceholders = [manifestApplicationId: "${applicationId}",
+                                onesignal_app_id: onesignalAppId,
+                                onesignal_google_project_number: "",
+                                admob_app_id: adMobAppId,
+                                facebook_app_id: fbAppId,
+                                facebook_client_token: fbClientToken,
+                                auth0Domain: auth0Domain, auth0Scheme: auth0Scheme ]
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../../release.keystore")
+            storePassword "password"
+            keyAlias "release"
+            keyPassword "password"
+        }
+        upload {
+            storeFile file("../../upload.keystore")
+            storePassword "password"
+            keyAlias "upload"
+            keyPassword "password"
+        }
+    }
+
+    buildTypes {
+        debug {
+	        applicationIdSuffix ".debug"
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+            zipAlignEnabled true
+            debuggable project.getProperties().get("enableLogsInRelease").toBoolean()
+            signingConfig signingConfigs.release
+        }
+        upload {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+            zipAlignEnabled true
+            matchingFallbacks = ['release']
+            debuggable project.getProperties().get("enableLogsInRelease").toBoolean()
+            signingConfig signingConfigs.upload
+        }
+        buildTypes.each {
+            it.buildConfigField 'boolean', 'GOOGLE_SERVICE_INVALID', googleServiceInvalid
+        }
+    }
+
+    flavorDimensions "webview"
+
+    productFlavors {
+        normal {
+            dimension "webview"
+        }
+    }
+    namespace 'io.gonative.android'
+    //testNamespace '${applicationId}.test'
+    testNamespace 'ikea.test'
+}
+
+dependencies {
+    /**** dependencies used by all apps ****/
+    implementation "androidx.core:core-ktx:1.9.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.aurelhubert:ahbottomnavigation:2.3.4'
+    implementation 'com.squareup:seismic:1.0.2'
+    implementation 'androidx.webkit:webkit:1.5.0'
+    implementation 'androidx.core:core-splashscreen:1.0.0'
+    implementation "com.github.gonativeio:gonative-icons:$iconsVersion"
+    implementation "com.github.gonativeio:gonative-android-core:$coreVersion"
+    /**** end all apps ****/
+
+    /**** add-on module dependencies ****/
+    /**** end modules ****/
+    
+    /**** Google Android and Play Services dependencies ****/
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.browser:browser:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation "androidx.drawerlayout:drawerlayout:1.2.0"
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    /**** end google ****/
+
+    /**** local dependencies ****/
+    implementation fileTree(dir: 'libs', include: '*.jar')
+    implementation fileTree(dir: 'libs', include: '*.aar')
+    /**** end local ****/
+
+    /*for serial port communication*/
+    implementation 'com.github.mik3y:usb-serial-for-android:3.5.1'
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+}
+
+apply from: file("../plugins.gradle"); applyNativeModulesAppBuildGradle(project)
